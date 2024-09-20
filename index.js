@@ -50,7 +50,7 @@ async function main() {
 
     pcm = tempPcm;
 
-    let size = Math.ceil(Math.sqrt(Math.ceil(pcm.length / 3)))
+    let size = Math.ceil(Math.sqrt(Math.ceil(pcm.length / 3))) - 2
     let width = size;
     let height = size;
 
