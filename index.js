@@ -50,7 +50,10 @@ async function main() {
 
     pcm = tempPcm;
 
-    let size = Math.ceil(Math.sqrt(Math.ceil(pcm.length / 3))) - 2
+    let size = Math.ceil(Math.sqrt(Math.ceil(pcm.length / 3)))
+    let remainder = size % 8;
+    if (remainder > 0) size += 8 - remainder; //magically fixes clicking
+
     let width = size;
     let height = size;
 
