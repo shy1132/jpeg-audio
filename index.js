@@ -16,6 +16,7 @@ let quality = Number(process.argv[3] || 100)
 let safeFilePath = `"${filePath.replaceAll('"', '\\"')}"`
 let tempDirPath = `./.temp${Date.now()}`
 fs.rmSync('./output.flac', { force: true })
+fs.rmSync('./output.jpeg', { force: true })
 
 async function main() {
     console.log('checking for ffmpeg')
@@ -82,15 +83,15 @@ async function main() {
     image.write(`${tempDirPath}/output.bmp`) //for some reason, writing directly as a jpeg breaks node
 
     console.log(`converting bmp image to jpeg at ${quality} quality`)
-    await exec(`convert ${tempDirPath}/output.bmp -quality ${quality} ${tempDirPath}/output.jpeg`)
+    await exec(`convert ${tempDirPath}/output.bmp -quality ${quality} ./output.jpeg`)
 
     console.log('converting jpeg image to bmp')
-    await exec(`convert ${tempDirPath}/output.jpeg ${tempDirPath}/output2.bmp`)
+    await exec(`convert ./output.jpeg ${tempDirPath}/output2.bmp`)
 
     console.log('reading bmp image as raw pcm audio, and converting to flac')
     await exec(`ffmpeg -f u8 -ar ${frequency} -ac ${channels} -i ${tempDirPath}/output2.bmp output.flac`)
 
-    console.log('done, file is at ./output.flac')
+    console.log('done, audio file is at ./output.flac and jpeg file is at ./output.jpeg')
     fs.rmSync(tempDirPath, { recursive: true, force: true })
 }
 
