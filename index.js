@@ -7,12 +7,12 @@ const cp = require('child_process')
 const exec = require('util').promisify(cp.exec)
 
 if (!process.argv[2]) {
-    console.log('usage: node . (filePath) (quality 2-31, lower is better)')
+    console.log('usage: node . (filePath) (quality 1-100, higher is better)')
     return process.exit(0);
 }
 
 let filePath = process.argv[2]
-let quality = Number(process.argv[3] || 2)
+let quality = Number(process.argv[3] || 100)
 let safeFilePath = `"${filePath.replaceAll('"', '\\"')}"`
 let tempDirPath = `./.temp${Date.now()}`
 fs.rmSync('./output.flac', { force: true })
@@ -24,6 +24,14 @@ async function main() {
         await exec('ffprobe -version')
     } catch {
         console.log('ffmpeg/ffprobe not found in path')
+        return process.exit(1);
+    }
+
+    console.log('checking for imagemagick convert')
+    try {
+        await exec('convert -version')
+    } catch {
+        console.log('convert not found in path')
         return process.exit(1);
     }
 
@@ -74,10 +82,10 @@ async function main() {
     image.write(`${tempDirPath}/output.bmp`) //for some reason, writing directly as a jpeg breaks node
 
     console.log('converting bmp image to jpeg')
-    await exec(`ffmpeg -i ${tempDirPath}/output.bmp -q:v ${quality} ${tempDirPath}/output.jpeg`)
+    await exec(`convert ${tempDirPath}/output.bmp -quality ${quality} ${tempDirPath}/output.jpeg`)
 
     console.log('converting jpeg image to bmp')
-    await exec(`ffmpeg -i ${tempDirPath}/output.jpeg ${tempDirPath}/output2.bmp`)
+    await exec(`convert ${tempDirPath}/output.jpeg ${tempDirPath}/output2.bmp`)
 
     console.log('reading bmp image as raw pcm audio, and converting to flac')
     await exec(`ffmpeg -f u8 -ar ${frequency} -ac ${channels} -i ${tempDirPath}/output2.bmp output.flac`)
