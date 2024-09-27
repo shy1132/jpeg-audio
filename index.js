@@ -52,12 +52,6 @@ async function main() {
     console.log('converting raw pcm to bmp image')
 
     let pcm = fs.readFileSync(`${tempDirPath}/output.raw`)
-    let tempPcm = Buffer.alloc(pcm.length)
-    for (let i = 0; i < pcm.length; i++) { //reverse it cuz bitmaps are upside down
-        tempPcm[i] = pcm[pcm.length - 1 - i];
-    }
-
-    pcm = tempPcm;
 
     let size = Math.ceil(Math.sqrt(Math.ceil(pcm.length / 3)))
     let remainder = size % 8;
@@ -70,26 +64,24 @@ async function main() {
     let i = 0;
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
-            let red = tempPcm[i++]
-            let green = tempPcm[i++]
-            let blue = tempPcm[i++]
+            let red = pcm[i++]
+            let green = pcm[i++]
+            let blue = pcm[i++]
             let color = Jimp.rgbaToInt(red || 0, green || 0, blue || 0, 255)
             image.setPixelColor(color, x, y)
         }
     }
-
-    image.flip({ horizontal: true }) //flip it cuz bitmaps are upside down
 
     image.write(`${tempDirPath}/output.bmp`) //for some reason, writing directly as a jpeg breaks node
 
     console.log(`converting bmp image to jpeg at ${quality} quality`)
     await exec(`convert ${tempDirPath}/output.bmp -quality ${quality} ./output.jpeg`)
 
-    console.log('converting jpeg image to bmp')
-    await exec(`convert ./output.jpeg ${tempDirPath}/output2.bmp`)
+    console.log('converting jpeg image to raw rgb')
+    await exec(`convert ./output.jpeg ${tempDirPath}/output.rgb`)
 
-    console.log('reading bmp image as raw pcm audio, and converting to flac')
-    await exec(`ffmpeg -f u8 -ar ${frequency} -ac ${channels} -i ${tempDirPath}/output2.bmp output.flac`)
+    console.log('reading raw rgb image as raw pcm audio, and converting to flac')
+    await exec(`ffmpeg -f u8 -ar ${frequency} -ac ${channels} -i ${tempDirPath}/output.rgb output.flac`)
 
     console.log('done, audio file is at ./output.flac and jpeg file is at ./output.jpeg')
     fs.rmSync(tempDirPath, { recursive: true, force: true })
