@@ -72,7 +72,7 @@ async function main() {
         }
     }
 
-    image.write(`${tempDirPath}/output.bmp`) //for some reason, writing directly as a jpeg breaks node
+    await image.write(`${tempDirPath}/output.bmp`) //for some reason, writing directly as a jpeg breaks node
 
     console.log(`converting bmp image to jpeg at ${quality} quality`)
     await exec(`convert ${tempDirPath}/output.bmp -quality ${quality} ./output.jpeg`)
